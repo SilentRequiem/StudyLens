@@ -1,0 +1,1353 @@
+CSC 395 - Advanced Swift App Development with ARKit
+Midterm Project - StudyLens
+Michael Amoo
+
+Agentic Coding Development Log
+
+==================================================
+PROMPT 1 - Initial SwiftUI Interface
+==================================================
+
+Build the initial SwiftUI interface for an iOS app named StudyLens. StudyLens is a multimodal study assistant that will eventually let a student scan printed notes, handwrite notes, dictate voice reminders, generate AI study material, and view a brain map. For this first pass, do not implement Vision, Foundation Models, speech recognition, PencilKit, networking, or any AI functionality yet.
+Create a clean tab-based interface with four sections:
+1. Capture: buttons or cards for Scan Image, Speak Note, and Write Note.
+2. Notes: a place to display captured study notes.
+3. Study: placeholders for Summary, Key Concepts, and Practice Questions.
+4. Brain Map: a placeholder screen for a future concept map.
+Use native SwiftUI and SF Symbols. Keep the design polished but simple and suitable for a college study app. Organize the project into sensible folders such as Models, Views, Services, and ViewModels so later features can be added cleanly. Do not add mock API results or fake AI output. Make sure the project builds.
+Also summarize which files you created or changed and why.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude Opus created the initial StudyLens project structure with four tabs:
+Capture, Notes, Study, and Brain Map.
+
+It added:
+- StudyNote model
+- Note source tracking
+- In-memory note storage
+- Shared NotesViewModel
+- Capture option cards
+- Placeholder Study and Brain Map screens
+
+The project built successfully.
+
+
+==================================================
+PROMPT 2 - Vision OCR Scan Note
+==================================================
+
+Implement the first real StudyLens capture feature: scanning an image and extracting text with Apple's Vision framework.
+Requirements:
+- Preserve the existing project architecture and all current tabs.
+- Do not implement Foundation Models, speech recognition, PencilKit, Wikipedia/API networking, or the brain map yet.
+- Replace the current Scan Image placeholder with a functional Scan Note screen.
+- Allow the user to select an image from the photo library using the appropriate native SwiftUI photo picker.
+- Display the selected image in the interface.
+- Create a separate VisionTextRecognizer service using Apple's Vision framework and VNRecognizeTextRequest.
+- Use accurate text recognition and enable language correction where appropriate.
+- Perform Vision work without blocking the main UI.
+- Show a progress/loading state while recognition is running.
+- Display the recognized text in an editable text area so the user can correct OCR mistakes before saving.
+- Handle cases where no text is detected and show a useful error message.
+- Add a Save Note button that creates a StudyNote with .scan as its source and saves it through the existing shared NotesViewModel.
+- After saving, the new note should appear in the existing Notes tab.
+- Generate a reasonable title automatically from the recognized content, but allow the user to edit the title before saving.
+- Do not create fake OCR output or mock results.
+- Add concise comments around the important Vision code so I can later identify it for my technical report.
+- Build the project when finished and fix any compilation errors.
+After implementation, summarize:
+1. Every file created or changed.
+2. How the image gets from the photo picker into Vision.
+3. How VNRecognizeTextRequest extracts the text.
+4. How the recognized text becomes a saved StudyNote.
+5. Any warnings or limitations I should know about.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude implemented the Scan Image feature using Apple's Vision framework.
+
+Created:
+- VisionTextRecognizer.swift
+- ScanNoteViewModel.swift
+- ScanNoteView.swift
+
+Updated:
+- CaptureView.swift
+
+The implementation uses PhotosPicker to select an image, converts the
+image for Vision processing, and runs VNRecognizeTextRequest with accurate
+recognition and language correction enabled.
+
+Recognized text is displayed in an editable TextEditor. The user can
+correct OCR mistakes, edit the generated title, and save the result as a
+StudyNote with the .scan source.
+
+The project built successfully.
+
+
+==================================================
+PROMPT 3 - Foundation Models Study Guide
+==================================================
+
+Implement StudyLens’s second required AI feature using Apple’s current Foundation Models framework.
+StudyLens already has a working Vision OCR Scan Note feature. Users can select an image, extract text using Vision, edit the recognized text and title, and save it through the shared NotesViewModel.
+Preserve all existing Vision and note functionality.
+For this stage, implement an AI-powered Study Guide using Apple’s Foundation Models framework.
+Platform/testing requirements
+- The development Mac is an Apple M2 MacBook Air running macOS 27.
+- I will test Foundation Models using the Mac target.
+- Keep the existing iOS app compilable even on devices that cannot run Apple Intelligence, such as an iPhone 14 Pro Max.
+- Use the Foundation Models APIs that actually exist in the currently installed Xcode 27 SDK. Do not copy obsolete API names from older examples.
+Foundation Model requirements
+- Import FoundationModels.
+- Use the system language model, preferably SystemLanguageModel.default where appropriate with the installed SDK.
+- Check the model’s availability before creating a generation request.
+- Never crash or hang when the model is unavailable.
+- If Apple Intelligence is disabled, the device is not eligible, or the model is not ready, show a useful message in the Study screen.
+- Create a separate StudyAnalysisService for all Foundation Models logic.
+- Create a StudyViewModel that manages availability, loading, generated results, and errors.
+- Do not place model calls directly inside the SwiftUI view.
+Structured generation
+Use guided generation with @Generable. Do not ask the model to return JSON and do not manually parse its response.
+Create small structured models for:
+StudyAnalysis
+- summary
+- keyConcepts
+- practiceQuestions
+- brainMap
+KeyConcept
+- concept name
+- short explanation based on the notes
+PracticeQuestion
+- question
+- answer
+BrainMap
+- central topic
+- concepts/nodes
+- relationships between concepts
+ConceptRelationship
+- source concept
+- target concept
+- short relationship description
+Keep the result intentionally small. Aim for roughly:
+- 4 to 6 key concepts
+- 3 to 5 practice questions
+- 4 to 8 brain-map relationships
+Use @Guide count constraints where they improve reliability and are supported by the installed SDK.
+Grounding requirements
+Analyze the user’s actual saved StudyNote objects.
+Combine the saved note titles and bodies into clearly separated study material before sending them to the model.
+Instruct the model:
+- Base its study guide only on information supplied in the notes.
+- Do not introduce outside facts just to make the guide longer.
+- If the notes do not contain enough information for something, indicate that rather than inventing an answer.
+- Keep explanations concise and useful for studying.
+Study interface
+Replace the current Study placeholders with a functional screen.
+If there are no saved notes:
+- show an empty state telling the user to add study material first.
+If the model is unavailable:
+- show a clear Foundation Models / Apple Intelligence availability message.
+If notes exist and the model is available:
+- show a Generate Study Guide button.
+While generating:
+- show progress
+- disable duplicate generation requests
+After generation, show:
+1. Summary
+2. Key Concepts
+3. Practice Questions
+For each practice question, hide the answer initially and allow the user to reveal it.
+Save the generated brain-map structure in the analysis result, but do not implement the visual Brain Map yet. The Brain Map tab should remain a placeholder during this stage.
+Do not implement voice notes, PencilKit, Wikipedia/API networking, or text-to-speech yet.
+Add concise comments near the important Foundation Models code so I can identify useful screenshots for my technical report.
+Build the project when finished. If APIs differ because of the current macOS 27 / Xcode 27 beta SDK, inspect the installed framework and adapt to the APIs that actually compile rather than guessing.
+When finished, explain:
+1. Files created or changed.
+2. How model availability is checked.
+3. How StudyLens converts saved notes into a prompt.
+4. How LanguageModelSession is used.
+5. How @Generable produces the StudyAnalysis.
+6. How the Study UI presents the generated result.
+7. How the brain-map data is being prepared for the next stage.
+8. Any warnings, limitations, or device requirements.
+Finally, build the Mac target and report whether it compiled successfully.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude implemented StudyLens's second AI feature using Apple's
+Foundation Models framework.
+
+Created:
+- StudyAnalysis.swift
+- StudyAnalysisService.swift
+- StudyViewModel.swift
+
+Updated:
+- StudyView.swift
+- ContentView.swift
+
+StudyLens now checks SystemLanguageModel availability and uses
+LanguageModelSession with guided generation.
+
+The generated StudyAnalysis contains:
+- Summary
+- Key concepts
+- Practice questions and answers
+- Brain-map concepts and relationships
+
+The model is instructed to use only information from the user's
+saved notes.
+
+Builds succeeded for:
+- My Mac
+- iPhone 14 Pro Max simulator
+- iPhone 18 Pro Max simulator
+
+
+
+==================================================
+PROMPT 4 - Brain Map Visualization
+==================================================
+
+Implement the visual Brain Map feature for StudyLens using the brain-map data already generated by the Foundation Models study analysis.
+Do not make another Foundation Models request for this feature. Use the existing generated BrainMap data from the shared StudyViewModel.
+Preserve all existing Vision OCR and Foundation Models functionality.
+Requirements:
+- Replace the current Brain Map placeholder with a functional SwiftUI concept map.
+- Use the existing StudyAnalysis.brainMap structure containing the central topic, concepts, and concept relationships.
+- Do not use a third-party graph library.
+- Build the visualization using native SwiftUI.
+The map should:
+- Display the central topic prominently in the center.
+- Arrange the generated concepts around the central topic.
+- Draw visible connections between concepts based on the generated relationships.
+- Make the relationships readable rather than displaying disconnected bubbles.
+- Use a clean visual hierarchy so the central topic is visually different from normal concept nodes.
+- Give nodes enough spacing that labels do not overlap badly.
+- Support both macOS and iOS screen sizes.
+- Allow the map area to scroll if needed.
+Add simple interaction:
+- Tapping a concept node should select it.
+- Show a small detail panel, popover, sheet, or inspector containing the selected concept and any available relationship information.
+- Clearly show which concepts connect to the selected node.
+State handling:
+- If no Study Guide has been generated yet, show an empty state telling the user to first generate a guide from the Study tab.
+- If a new Study Guide is generated, the Brain Map should automatically use the new data.
+- Do not generate fake concepts or placeholder relationships.
+Architecture:
+- Keep visualization/layout logic separate from the Foundation Models service.
+- You may create supporting types such as BrainMapNodeView, BrainMapLayout, or similar if useful.
+- Prefer a deterministic layout so the nodes do not randomly jump to different positions every time the view redraws.
+- Keep the implementation reasonably simple and reliable for a class project.
+Visual design:
+- Match the existing StudyLens style.
+- Use SF Symbols and system colors where appropriate.
+- Give the central node a distinctive appearance.
+- Use different but restrained styling for connected concept nodes.
+- Make connection lines visible in both light and dark mode.
+Do not implement Speech Recognition, PencilKit, Wikipedia/API networking, or Text to Speech during this stage.
+Build and test the feature for:
+- My Mac
+- iPhone 18 Pro Max simulator
+When finished, explain:
+1. Every file created or changed.
+2. How the generated BrainMap data reaches BrainMapView.
+3. How node positions are calculated.
+4. How relationship lines are drawn.
+5. How node selection works.
+6. Any differences between the macOS and iOS layouts.
+7. Any limitations of the current graph layout.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude implemented a visual Brain Map using the structured data already
+generated by the Foundation Models study analysis.
+
+Created:
+- BrainMapGraph.swift
+- BrainMapLayout.swift
+- BrainMapNodeView.swift
+- BrainMapEdgeView.swift
+- BrainMapDetailPanel.swift
+
+Updated:
+- BrainMapView.swift
+- StudyAnalysis.swift
+
+The Brain Map:
+- Uses the existing generated BrainMap data
+- Displays a central topic and related concepts
+- Draws directional relationship lines
+- Shows relationship labels
+- Supports selecting concepts
+- Shows more details about selected concepts
+- Updates automatically when a new Study Guide is generated
+
+No additional Foundation Models request is made when opening the Brain Map.
+
+The project builds successfully for macOS and iOS.
+
+==================================================
+PROMPT 5 - PencilKit Write Note and Handwriting OCR
+==================================================
+
+Implement StudyLens's Write Note capture feature using Apple PencilKit and the existing Vision OCR pipeline, and add drag-image input as an additional handwriting source.
+
+StudyLens already has:
+- Working Scan Image capture using Apple Vision OCR
+- Shared NotesViewModel and StudyNote model
+- StudyNote source tracking for scan, voice, and handwriting
+- Foundation Models study-guide generation
+- Generated Summary, Key Concepts, Practice Questions, and Brain Map data
+- Interactive Brain Map visualization
+
+Preserve all existing functionality.
+
+Requirements:
+- Replace the current Write Note placeholder with a functional handwriting screen.
+- Use PencilKit for the handwriting canvas where supported.
+- On iOS and iPadOS, use PKCanvasView and the native PencilKit tool picker.
+- Allow Apple Pencil input on iPad, while also supporting finger input where appropriate.
+- Keep the Mac target working. If PKCanvasView or PKToolPicker are unavailable on macOS, provide a native mouse/trackpad drawing fallback using PencilKit drawing data rather than breaking the target.
+- Support undo, redo, and clear.
+- Render the drawing into an image suitable for OCR.
+- Reuse the existing VisionTextRecognizer rather than creating a second OCR pipeline.
+- Recognize the handwriting with Vision and show the recognized text in an editable field.
+- Generate an editable title from the recognized text.
+- Save the result through the shared NotesViewModel as a StudyNote with .handwriting as its source.
+- The saved note must appear in Notes and be usable by the existing Study Guide and Brain Map pipeline.
+- Add drag-and-drop image input to the Write Note screen so an image of handwritten notes can be dropped from Photos, Files, Finder, Safari, or another supported source and recognized through the same Vision pipeline.
+- Show useful loading, empty, and error states.
+- Do not make another Foundation Models request for handwriting recognition.
+- Do not break Scan Image, Study Guide, Practice Questions, or Brain Map.
+- Add concise comments around the important PencilKit, image rendering, Vision OCR, save, and drag/drop code for report screenshots.
+
+Build and verify:
+- My Mac
+- iPhone 18 Pro Max simulator
+
+When finished, explain:
+1. Every file created or changed.
+2. How PencilKit is connected to SwiftUI.
+3. Differences between iPad/iPhone input and macOS input.
+4. How the drawing becomes an image.
+5. How the image enters the existing Vision OCR pipeline.
+6. How the recognized text becomes a .handwriting StudyNote.
+7. How handwritten notes enter the Study Guide and Brain Map pipeline.
+8. How drag-image input works.
+9. Limitations.
+10. Good code sections for report screenshots.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude implemented the Write Note feature with handwriting recognition and drag-image input.
+
+Created:
+- HandwritingCanvas.swift
+- HandwritingRenderer.swift
+- HandwritingNoteViewModel.swift
+- HandwritingNoteView.swift
+
+Updated:
+- CaptureView.swift
+- ScanNoteViewModel.swift
+
+The implementation:
+- Uses PKCanvasView and PKToolPicker on iOS/iPadOS.
+- Supports Apple Pencil, finger input, undo, redo, and clear.
+- Uses a custom macOS drawing view because PKCanvasView and PKToolPicker are not available on the native Mac target.
+- Converts PKDrawing content into a cropped image with a white background.
+- Reuses the existing VisionTextRecognizer for handwriting OCR.
+- Displays recognized text and title so they can be corrected before saving.
+- Saves recognized handwriting as a StudyNote with the .handwriting source.
+- Sends handwritten notes through the same Study Guide and Brain Map pipeline as scanned notes.
+- Accepts dropped handwriting images and recognizes them through the same Vision OCR path.
+
+Known limitations noted during implementation:
+- macOS does not have the same PencilKit tool picker or Apple Pencil pressure/tilt support.
+- Vision handwriting recognition works best with larger, neat handwriting.
+- Drawings and dropped images are used to create the saved text note, but the original drawing/image is not persisted with the note.
+
+Builds succeeded for:
+- My Mac
+- iPhone 18 Pro Max simulator
+
+
+==================================================
+PROMPT 6 - Speak Note Voice Study Tool
+==================================================
+
+Implement StudyLens's Speak Note feature as a complete voice-based study tool.
+
+StudyLens currently has:
+- Working Vision OCR Scan Note capture
+- Working PencilKit Write Note capture with Vision handwriting recognition
+- Shared NotesViewModel and StudyNote model
+- Saved note sources including .scan, .voice, and .handwriting
+- Foundation Models study-guide generation
+- Generated Summary, Key Concepts, Practice Questions, and Brain Map
+- Interactive Brain Map
+
+Preserve all existing functionality.
+
+Requirements:
+
+1. Dictate voice notes
+- Replace the Speak Note placeholder with a real Speak Note screen.
+- Let the user record speech and convert it to text using Apple's Speech framework and microphone input.
+- Show live transcription while recording when supported.
+- Let the user edit the transcript and generated title before saving.
+- Save the result through the shared NotesViewModel as a StudyNote with .voice as its source.
+- Also allow typed text in the Dictate section so the feature remains useful when the user cannot speak.
+- Saved voice notes must appear in Notes and enter the same Study Guide and Brain Map pipeline as the other note types.
+
+2. Read notes aloud
+- Reuse the concepts from the existing Amoo_t2speech AVFoundation assignment.
+- Use AVSpeechSynthesizer and AVSpeechUtterance through a reusable speech-synthesis service.
+- Let the user select a saved note and hear it read aloud.
+- Include Play/Restart, Pause/Resume, Stop, and speaking-rate controls where practical.
+- Highlight or otherwise track the current spoken word if supported cleanly.
+
+3. Quiz Me
+- Add a Quiz Me mode that uses the Practice Questions already generated by the current Study Guide.
+- Do not create a new Foundation Models request just to obtain the questions.
+- Read the question aloud using the shared speech-synthesis service.
+- Let the user answer by speaking.
+- Also allow a typed answer when the user cannot use the microphone.
+- Convert spoken answers to text using the shared speech-recognition service.
+- Evaluate the answer against the expected answer from the generated PracticeQuestion.
+- Use the existing Apple Foundation Models framework for grounded answer evaluation when it is available.
+- The grader must use only the expected answer and the user's response. Do not add outside facts.
+- Return clear outcomes such as Correct, Partially Correct, and Try Again, with a short explanation.
+- If Foundation Models is unavailable, provide a reasonable local keyword/phrase comparison fallback so Quiz Me still works.
+- Reveal the expected answer when useful, especially after an incomplete or incorrect response.
+
+4. Architecture and permissions
+- Keep Speech recognition, AVFoundation synthesis, grading, view models, and SwiftUI screens separated cleanly.
+- Reuse existing services and models instead of duplicating them.
+- Add the microphone and speech-recognition privacy descriptions required by iOS/macOS.
+- Make sure the sandboxed Mac app has audio-input access.
+- Use APIs that actually compile against the installed Xcode 27/macOS 27 SDK.
+- Do not leave deprecated microphone APIs in the new implementation when a current replacement is available.
+
+5. Testing
+Build and verify:
+- My Mac
+- iPhone 18 Pro Max simulator
+
+Preserve Scan Image, Write Note, Notes, Study Guide, Quiz questions, and Brain Map functionality.
+
+When finished, explain:
+1. Every file created or changed.
+2. How microphone audio becomes text.
+3. How AVSpeechSynthesizer reads notes aloud.
+4. How a spoken or typed answer is evaluated.
+5. How voice notes enter the Study Guide pipeline.
+6. Permissions added.
+7. Limitations and real-device testing requirements.
+8. Good code sections for report screenshots.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude implemented Speak Note as a full voice-based study screen with three modes: Dictate, Listen, and Quiz Me.
+
+Created:
+- AnswerEvaluation.swift
+- SpeechRecognitionService.swift
+- SpeechSynthesisService.swift
+- AnswerEvaluationService.swift
+- SpeakNoteViewModel.swift
+- DictateNoteViewModel.swift
+- ReadAloudViewModel.swift
+- QuizMeViewModel.swift
+- SpeakComponents.swift
+- SpeakNoteView.swift
+- DictateNoteSection.swift
+- ReadAloudSection.swift
+- QuizMeSection.swift
+
+Updated:
+- CaptureView.swift
+- App target privacy/build settings for microphone and speech recognition access
+
+Dictate:
+- Requests speech-recognition and microphone permission.
+- Uses AVAudioEngine and Apple's Speech framework for transcription.
+- Supports live transcription and editable text.
+- Allows typed text when speaking is not practical.
+- Saves the finished content as a .voice StudyNote through NotesViewModel.
+
+Listen:
+- Reuses AVSpeechSynthesizer through a shared SpeechSynthesisService.
+- Can read saved notes aloud.
+- Supports speaking controls such as play/restart, pause/resume, stop, and speaking rate.
+
+Quiz Me:
+- Reuses the Study Guide's existing practice questions.
+- Accepts spoken or typed answers.
+- Uses Foundation Models for grounded answer evaluation when available.
+- Falls back to a local keyword-based grader if the model is unavailable.
+- Reports Correct, Partially Correct, or Try Again with an explanation.
+- Can reveal and read the expected answer.
+
+The implementation also added the microphone and speech-recognition permissions needed for the app targets.
+
+Builds succeeded for:
+- My Mac
+- iPhone 18 Pro Max simulator
+
+The main remaining limitation is that microphone behavior, live transcription quality, and Apple Intelligence grading should be verified on a physical supported device.
+
+
+==================================================
+PROMPT 6.5 - Visual Flashcards Study Mode
+==================================================
+
+STATUS: READY TO RUN. No agent result has been recorded yet.
+
+Implement a visual Flashcards study mode for StudyLens, similar in interaction to Quizlet, using the study material StudyLens already generates.
+
+StudyLens currently has:
+- persistent saved notes using SwiftData
+- Scan Image with Vision OCR
+- Write Note with PencilKit and handwriting recognition
+- Speak Note with dictation, text-to-speech, and Quiz Me
+- Foundation Models study-guide generation
+- generated Summary, Key Concepts, Practice Questions, and Brain Map
+- Quiz Me with spoken or typed answers
+- Correct, Partially Correct, and Try Again grading
+- note deletion, Clear All, and note export
+- Brain Map export
+
+Preserve all existing functionality.
+
+Goal:
+Add a dedicated visual Flashcards mode that lets the user study the existing generated study guide as interactive cards.
+
+Do not make another Foundation Models request just to create flashcards. Reuse the data already present in the existing StudyAnalysis / generated study guide whenever possible.
+
+Requirements:
+- Add a clear Study Flashcards button or card in the Study tab near Quiz Me.
+- Opening it should navigate to a dedicated Flashcards screen.
+- Build cards from both Practice Questions and Key Concepts.
+- Practice Question cards: question on the front, expected answer on the back.
+- Key Concept cards: concept name on the front, explanation on the back.
+- If practical, let the user filter between All Cards, Questions, and Key Concepts.
+- Clearly show each card's source/type.
+- Use a large centered card with a smooth SwiftUI flip animation.
+- Prefer a real 3D rotation effect if it remains reliable and readable.
+- Show card number, card type, content, and a small Tap to reveal answer instruction.
+- Support macOS and iPhone layouts.
+
+Navigation:
+- Previous
+- Next
+- Shuffle
+- Restart Deck
+- Each new card should start on its front.
+- Add macOS keyboard controls if practical: Space/Return to flip, Left Arrow for previous, Right Arrow for next.
+
+Session tracking:
+- After revealing an answer, show Know It and Review Again.
+- Track Known, Review, and Remaining counts for the current session.
+- Cards marked Review Again should be available for another pass.
+- At the end, show cards studied, known count, review count, and percentage known.
+- Add Study Review Cards Again, Restart All Cards, and Done actions.
+- This session tracking does not need to change Quiz Me grading.
+
+Read aloud:
+- Reuse the existing SpeechSynthesisService / AVSpeechSynthesizer.
+- Add a Read Aloud action for the visible side of the card.
+- If practical, add Auto Read for the front of each new card.
+- Do not duplicate the speech implementation.
+
+Visual design:
+- Keep the design consistent with StudyLens.
+- Give Flashcards its own restrained accent color.
+- Make the card feel like a study card rather than a normal settings panel.
+- Use rounded corners, subtle shadow, flip animation, and a progress indicator.
+- Support Light Mode and Dark Mode.
+
+Data behavior:
+- Flashcards must use the current generated Study Guide.
+- If the guide is regenerated, Flashcards should use the new data next time they open.
+- Respect the existing out-of-date study-guide behavior if saved notes change.
+- If no guide exists, show an empty state directing the user to generate one from Study.
+- Do not make another Foundation Models request.
+
+Architecture:
+- Keep the implementation separated cleanly.
+- Appropriate supporting files may include Flashcard.swift, FlashcardsViewModel.swift, FlashcardsView.swift, FlashcardView.swift, and a session/result type if useful.
+- Reuse StudyViewModel, StudyAnalysis, Key Concepts, Practice Questions, and the existing speech-synthesis service.
+- Do not duplicate study-guide models unnecessarily.
+
+Testing:
+Build and verify:
+- My Mac
+- iPhone 18 Pro Max simulator
+
+Test when possible:
+- question card front
+- flipped question card
+- key-concept card
+- Previous / Next
+- Shuffle
+- Know It
+- Review Again
+- progress counts
+- session-complete screen
+- read aloud
+- empty state
+- Light Mode
+- Dark Mode
+
+Do not implement document/file importing, drag-and-drop PDF/DOCX/PPTX/CSV/XLSX support, or external APIs in this revision. Those are planned for the next revision.
+
+When finished, explain:
+1. Every file created or changed.
+2. How existing StudyAnalysis data becomes flashcards.
+3. How question and concept cards differ.
+4. How the flip animation works.
+5. How shuffle and navigation work.
+6. How Know It / Review Again progress is tracked.
+7. How the speech service is reused.
+8. How macOS and iOS differ.
+9. Limitations.
+10. Good code sections and UI states for assignment report screenshots.
+
+==================================================
+PROMPT 7 - Wikipedia Concept Enrichment (Learn More)
+==================================================
+
+Implement StudyLens's external API enrichment feature using the Wikipedia / MediaWiki API while preserving all existing functionality. Selecting a generated Key Concept should open a concept detail screen with the existing explanation, a Learn More button, loading state, Wikipedia result, source link, and an Add to Notes option. Wikipedia information must be clearly labeled as external ("From Your Notes" vs "From Wikipedia") and must never be merged into the Study Guide, Quiz Me grading, Flashcards, or Brain Map. Only contact Wikipedia when the user asks. Handle offline, API failure, empty results, disambiguation, missing extracts, invalid URLs, and cancellation. Add a simple in-memory cache keyed by normalized concept name. Use URLSession async/await + Codable, no third-party packages, and keep networking out of SwiftUI views (WikipediaService, WikipediaArticle, ConceptEnrichmentViewModel, ConceptDetailView). Reuse AppNavigationModel. Test Mitochondria, Ribosomes, Chloroplast, an ambiguous concept, and a nonsense concept; build for My Mac and an iPhone simulator; check Light and Dark Mode.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude Opus added an optional Wikipedia "Learn More" feature for study-guide concepts.
+
+Created:
+- Models/WikipediaArticle.swift: Codable MediaWiki response, WikipediaArticle, WikipediaLookupResult (article / ambiguous / no results), WikipediaError
+- Models/StudyConcept.swift: the concept value pushed onto navigation paths
+- Services/WikipediaService.swift: actor that builds one generator=search request (search + intro extract + URL + disambiguation flag + short description), maps errors, and caches results in memory for the session
+- ViewModels/ConceptEnrichmentViewModel.swift: idle / loading / loaded / failed states, cancel, match selection, and explicit Add to Notes
+- Views/Study/ConceptDetailView.swift: "From Your Notes" and "From Wikipedia" cards, plus previews for each state
+
+Modified:
+- StudyNote / StoredNote: new NoteSource.wikipedia and optional ExternalSourceInfo (article title + URL), stored as optional SwiftData attributes so existing stores migrate automatically
+- AppNavigationModel: StudyDestination.concept and brainMapPath
+- StudyView: Key Concepts rows open Concept Detail (same look, with a chevron); StudySectionCard made reusable
+- FlashcardsView: Key Concept cards link to Concept Detail
+- BrainMapView / BrainMapDetailPanel: existing stack bound to brainMapPath; "Concept Details & Learn More" on a selected node
+- NoteDetailView / NotesListView: show Wikipedia attribution and link for saved Wikipedia notes
+- project.pbxproj: ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES (macOS sandbox network client entitlement)
+
+Verified:
+- Live API: Mitochondria, Ribosomes (-> Ribosome), Chloroplast returned correct articles; Mercury and Cell were detected as ambiguous; a nonsense concept returned no results; "Light reactions" was flagged as a closest match only
+- Cache hits for normalized names; failures are not cached; cancellation returns to idle without overwriting a newer request
+- Simulated offline, HTTP 503, HTTP 429, timeout, and non-JSON responses all produce readable messages
+- "+" in concept names is percent-encoded (bug found and fixed during testing)
+- Add to Notes creates one .wikipedia note (no duplicates) that round-trips through the SwiftData record with title and URL
+- Builds succeeded with no warnings for My Mac and iPhone 18 Pro Max simulator; the Mac app is signed with com.apple.security.network.client
+- Concept Detail previews checked in Light and Dark Mode
+
+Still needs manual testing in the running app: the full tap-through from a real generated guide, a real offline device, Brain Map push on macOS (inspector) and iOS (panel), and opening the Wikipedia link in Safari.
+
+==================================================
+PROMPT 8 - External API Enrichment: Wikipedia "Learn More" for Key Concepts
+==================================================
+
+Add external API enrichment to StudyLens using the Wikipedia / MediaWiki API while preserving all existing functionality. Key Concepts should offer a Learn More option that looks the concept up on Wikipedia, from the Study guide, from Key Concept flashcards, and from Brain Map concept nodes. Keep networking and JSON decoding in a dedicated service, handle concepts with several meanings, no results, and network errors, cache results for the session, and let the user add an article to their notes with clear Wikipedia attribution. Wikipedia data must never enter the study guide automatically; it can only become study material if the user explicitly saves it as a note. Build for macOS and an iPhone simulator and report testing results and limitations.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude Opus added Wikipedia "Learn More" enrichment for StudyLens Key Concepts.
+
+What was added:
+- Wikipedia external API enrichment: a Concept Detail screen with two clearly labeled cards, "From Your Notes" (the on-device explanation) and "From Wikipedia" (external information)
+- Learn More access from three places: Study tab Key Concepts, Key Concept flashcards (pushed above the deck so Back returns to the session), and Brain Map concept nodes (pushed on the Brain Map tab's own stack)
+- WikipediaService: an actor that sends one MediaWiki Action API request (search plus intro extract, page URL, short description, and disambiguation flag) with URLSession async/await, and decodes the JSON with Codable
+- Ambiguity handling: when the top result is a disambiguation page, the user picks the matching meaning from a list; a close-but-not-exact match is labeled as the closest match, with other matches available
+- No-results and error states: "No Wikipedia Article Found", plus readable messages for offline, timeout, HTTP errors, and unreadable responses, each with Try Again; cancelling a search returns to the idle state
+- Session-only caching: an in-memory cache keyed by the normalized concept name (case-, accent-, and spacing-insensitive); only successful lookups are cached, so Try Again after an error really retries; nothing is written to disk
+- Add to Notes with Wikipedia attribution: saves the article summary as a note with the article title, link, and a CC BY-SA attribution block, and won't save the same article twice
+- A new Wikipedia note source (NoteSource.wikipedia) with ExternalSourceInfo (article title and URL), stored as optional SwiftData attributes so existing saved notes migrate automatically
+- Rule preserved: Wikipedia data does not enter the Summary, Key Concepts, Practice Questions, Quiz Me grading, Flashcards, or Brain Map unless the user explicitly saves it as a note and then generates a guide that includes that note; Wikipedia is only contacted when the user taps Learn More
+
+Bug found and fixed during testing:
+- URL encoding: URLComponents left "+" unencoded, so a concept such as "Na+/K+ pump" was searched as "Na /K  pump"; "+" is now percent-encoded as %2B
+
+Build results:
+- Clean builds with no errors or warnings for My Mac (macOS) and the iPhone simulator
+
+Manual testing recommendations:
+- Generate a real study guide and tap through Learn More from Key Concepts, a Key Concept flashcard, and a Brain Map node (macOS inspector and iOS bottom panel)
+- Try a clear concept (Mitochondria), an ambiguous one (Mercury), and a nonsense term
+- Turn off Wi-Fi to see the offline state, then Try Again after reconnecting
+- Add an article to Notes, confirm it appears in the Notes tab marked Wikipedia, and open its original article link
+- Reopen the same concept to confirm the cached result is reused
+
+Known limitations:
+- English Wikipedia only
+- Only the article's introduction is shown and saved, not the full article
+- The cache lasts only for the current app session
+- Wikipedia's search ranking can pick a related article rather than the exact concept; the user may need to choose from Other Matches
+- Wikipedia is volunteer-written, so important facts should be checked against course materials
+
+==================================================
+PROMPT 9 - Final Polish, Reliability, Accessibility, and Organization Pass
+==================================================
+
+Perform a final polish, reliability, accessibility, and organization pass on StudyLens without removing or breaking any existing functionality. Audit navigation for every route (Capture, Notes, Study, Brain Map, Scan Image, Write Note, Speak Note, Import File, Note Detail, Study Guide, Quiz Me, Flashcards, Brain Map concept details, Wikipedia Learn More). Add Notes search, source filtering, sorting, note count, and a filtered empty state while keeping selection, deletion, Clear All, export, and Study These Notes working. Review empty, loading, and error states so nothing fails silently and each offers a next action. Add or verify VoiceOver labels, hints, Dynamic Type, contrast, Reduce Motion, and macOS keyboard shortcuts. Audit UI consistency, macOS vs iPhone layout, data safety (SwiftData persistence, edits, deletes, Clear All), and duplicate work (Foundation Models, Wikipedia, OCR, regeneration, SwiftData writes). Build for My Mac and an iPhone simulator, test real logic where practical, and document as PROMPT 9. (Follow-up from user: keep padding right in Mac window mode, full screen, and on mobile.)
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude Opus completed a polish pass that keeps the existing architecture (AppNavigationModel, shared NotesViewModel / StudyViewModel) and visual identity.
+
+Created:
+- Models/NoteListQuery.swift: display-only search (title + body, multi-word, case/accent-insensitive), source filter, sort (newest / oldest / title), and count text
+- Views/Components/StudyLensComponents.swift: studyLensSheetFrame() (usable Mac sheet size), readableContentWidth() (padding kept at every width, centered on wide windows), Color.studyLensWarning (contrast-safe warning text), OpenSettingsButton, StatusMessageView (message + Retry/Try Again)
+- Views/Components/StudyLensCommands.swift: macOS menu bar / iPad keyboard commands (Import File… Cmd-O, Scan Image… Shift-Cmd-N, Write/Speak Note…, Go menu Cmd-1…4)
+
+Modified:
+- AppNavigationModel: notesPath (Note Detail by note ID), show(_:), openNote/closeNote/forgetDeletedNotes, beginCapture(_:), and one shared push rule for every stack (an existing screen is popped back to, never duplicated)
+- NotesViewModel: note(withID:), update(_:) (no disk write when nothing changed)
+- NotesListView: search, Filter & Sort menu, note count header, Clear Filters, No Matching Notes state, No Notes Yet actions, Study / Export Shown Notes, selection limited to visible notes, row VoiceOver label with source in words
+- NoteDetailView: looks the note up by ID, Edit sheet (title/text; source, date, import and Wikipedia attribution preserved), outdated-guide notice, Note Deleted state, readable width
+- ContentView / MyApp: prune deleted notes from the Notes stack, publish navigation for commands, register commands
+- StudyView / StudyViewModel: Try Again after a model failure (canRetryAfterError), empty-state actions, "not generated yet" hint, readable width
+- QuizMeSection / QuizMeScreen: Back to Study, "guide has no practice questions" state, Open Settings / Type Instead on speech errors
+- DictateNoteSection, DictateNoteViewModel, QuizMeViewModel, SpeechRecognitionService: keep the typed SpeechRecognitionError (settingsLink, suggestsTyping) so permission errors offer Open Settings
+- SpeakComponents: SpeechErrorView, record button hint/value, Reduce Motion for the Listening pulse
+- ImportFileViewModel / ImportFileView: Try Again for supported files that failed to extract
+- ConceptEnrichmentViewModel / ConceptDetailView: a concept looked up earlier this session reappears from the existing session cache on open (no request)
+- FlashcardsView: Reduce Motion-aware flip/navigation animations, VoiceOver "Know It" / "Review Again" actions on the card
+- BrainMapView: empty-state actions (Capture a Note / Go to Study), Reduce Motion panel transition, Click vs Tap hint per platform
+- CaptureView / CaptureOptionCard: scaled icon, stacked layout at accessibility text sizes, single VoiceOver stop with hint, readable width
+- ScanNoteView, HandwritingNoteView, SpeakNoteView: Mac sheet sizing; readable widths
+- ReadAloudSection: "Reading speed" slider label
+- Warning text in several views switched from system orange to Color.studyLensWarning
+
+Bugs found and fixed:
+- Scan Image, Write Note, and Speak Note sheets had no minimum size on macOS (Import File did)
+- Notes were pushed by value, so Note Detail would show a stale copy after an edit and could linger after deletion
+- Duplicate protection only checked the top of each stack
+- Speech permission errors gave no Open Settings action; a missing microphone gave no typing alternative in Quiz Me
+- Import extraction failures and study-guide generation failures had no Retry
+- Quiz Me showed "Generate Practice Questions" for a guide that existed but had no questions
+- Warning text in system orange was about 2.2:1 against light backgrounds
+
+Verified (direct tests with RunCodeSnippet):
+- NoteListQuery: newest/oldest/title sort, body search, multi-word search, accent-insensitive search, every source filter, no-match case, count text
+- AppNavigationModel: no duplicates on double tap or reopen, tab switch keeps stacks, deleted notes popped, beginCapture keeps other stacks
+- NotesViewModel.update: unchanged update writes nothing, edit is saved and keeps import info, editing a deleted note is a no-op
+- StoredNote round trip in an in-memory SwiftData container (never the real store): edited title saved, Wikipedia source and URL preserved
+- StudySource marks a guide outdated after an edit or deletion
+- Import: unsupported file shows no retry; failed supported file offers Try Again
+- Wikipedia: restore makes 0 requests without a cache and 0 extra requests with one (mock URLProtocol)
+- Builds succeeded with no errors or warnings for My Mac and the iPhone 17 simulator
+- Previews checked: Notes list (iPhone), Capture at AX 3 in Dark Mode
+
+Still needs manual testing: full tap-through in the running app on Mac and iPhone, relaunch persistence of an edited note, VoiceOver walkthrough, Open Settings links, macOS menu commands, Mac window resizing / full screen, real offline Wikipedia, and denied microphone/speech permissions.
+
+==================================================
+PROMPT 10 - Final StudyLens Audit, Validation, Cleanup, and Submission Readiness
+==================================================
+
+If there is no test file, make a dummy file to test with.
+
+PROMPT 10 - Final StudyLens Audit, Validation, Cleanup, and Submission Readiness
+
+Perform a final comprehensive audit of StudyLens before I prepare the project for submission.
+
+This is a stabilization and documentation pass, not a feature-development prompt.
+
+Do not add major new features.
+Do not redesign the application.
+Do not remove working functionality.
+Do not replace working implementations just because another architecture is possible.
+Prefer small targeted fixes only when you find an actual bug, reliability problem, accessibility issue, or broken integration.
+
+StudyLens currently includes:
+
+CAPTURE
+- Scan Image with Vision OCR
+- Write Note with PencilKit handwriting recognition
+- Speak Note with speech recognition
+- typed input when speaking is unavailable
+- Import File
+- drag-and-drop file importing where supported
+- imported TXT, Markdown, CSV, PDF, DOCX, PPTX, XLSX, and supported image formats
+
+NOTES
+- SwiftData persistence
+- scanned, handwritten, voice, typed, imported, and Wikipedia notes
+- note editing
+- note deletion
+- Clear All
+- multi-selection
+- search
+- source filtering
+- sorting
+- TXT and Markdown export
+- attribution for Wikipedia notes
+
+STUDY
+- source selection:
+  - All Notes
+  - Selected Notes
+  - One Note
+- Foundation Models study-guide generation
+- Summary
+- Key Concepts
+- Practice Questions
+- outdated-study-guide detection
+- regeneration
+- Quiz Me
+- Flashcards
+- Brain Map
+
+QUIZ ME
+- questions generated from the selected study material
+- spoken answers
+- typed answers
+- Correct / Partially Correct / Try Again evaluation
+- Foundation Models grading when available
+- local fallback grading
+- expected-answer reveal
+- text-to-speech question reading
+
+FLASHCARDS
+- Question cards
+- Key Concept cards
+- visual flip interaction
+- Previous / Next
+- Shuffle
+- Restart Deck
+- Know It
+- Review Again
+- review rounds
+- session summary
+- Read Aloud / Auto Read
+- source filtering based on the current generated study guide
+
+BRAIN MAP
+- generated concept graph
+- concept relationships
+- tappable concept details
+- export support
+- Learn More integration
+
+EXTERNAL ENRICHMENT
+- Wikipedia Learn More for Key Concepts
+- accessible from Study, Flashcards, and Brain Map
+- several-meanings handling
+- no-results handling
+- networking/error states
+- session caching
+- Add to Notes
+- Wikipedia attribution
+- Wikipedia content must NOT automatically become study material unless the user explicitly saves it as a note
+
+NAVIGATION
+- centralized AppNavigationModel
+- separate Capture, Notes, Study, and Brain Map tabs
+- Study destinations for Quiz Me, Flashcards, and Concept Detail
+- navigation should not duplicate screens
+- generating a study guide must not unexpectedly open Speak Note
+- leaving Quiz Me or Flashcards should return to Study correctly
+- generated study state should survive normal tab switching
+
+ACCESSIBILITY / PLATFORM SUPPORT
+- macOS and iOS
+- windowed and full-screen Mac layouts
+- reasonable content-width limits on large screens
+- usable iPhone layouts
+- Dynamic Type
+- VoiceOver labels/hints
+- Reduce Motion
+- permission-recovery actions such as Open Settings
+- keyboard shortcuts and menu commands where appropriate on macOS
+
+Your goals for this final pass are:
+
+1. ARCHITECTURE AUDIT
+
+Trace the important state flow through:
+Capture -> Notes -> Study Source -> Study Guide -> Quiz Me / Flashcards / Brain Map.
+
+Confirm there is a clear single source of truth for:
+- saved notes
+- navigation
+- selected study source
+- generated study guide
+- outdated state
+
+Look specifically for duplicated state, stale copied values, unnecessary NavigationStacks, accidental automatic navigation, or cases where one screen can overwrite another screen's state.
+
+Only change architecture if there is a concrete problem.
+
+2. NAVIGATION AUDIT
+
+Review every navigation path.
+
+Verify logically:
+- Capture -> Scan Image -> save -> Notes
+- Capture -> Write Note -> save -> Notes
+- Capture -> Speak Note -> save -> Notes
+- Capture -> Import File -> save -> Notes
+- Notes -> Note Detail -> Back
+- Notes -> Edit -> Save -> Detail
+- Study -> generate -> remain on Study
+- Study -> Quiz Me -> Back -> Study
+- Study -> Flashcards -> Back -> Study
+- Study -> Key Concept -> Concept Detail -> Back
+- Brain Map -> Concept Detail -> Back
+- switching between Capture / Notes / Study / Brain Map does not destroy unrelated state
+
+Check that repeatedly tapping destinations cannot produce duplicate copies of the same screen.
+
+3. PERSISTENCE AUDIT
+
+Confirm SwiftData persistence for every StudyNote source:
+- scan
+- handwriting
+- voice
+- typed
+- imported
+- Wikipedia
+
+Verify that editing preserves:
+- ID
+- source
+- creation date where appropriate
+- imported metadata / Wikipedia attribution where applicable
+
+Check deletion and Clear All behavior.
+
+Confirm changes that affect a generated study guide correctly mark it as outdated.
+
+Do not modify or erase my real saved-note database during automated testing.
+Use isolated/in-memory data for programmatic persistence checks.
+
+4. STUDY SOURCE AUDIT
+
+Verify:
+- All Notes
+- Selected Notes
+- One Note
+
+Confirm only the selected material is sent to Foundation Models.
+
+Verify the source description shown in Study, Quiz Me, Flashcards, and Brain Map stays consistent.
+
+Check what happens when:
+- a selected note is deleted
+- a selected note is edited
+- selected notes become empty
+- all notes are cleared
+
+The app should fail safely and explain what the user needs to do.
+
+5. FOUNDATION MODELS AUDIT
+
+Review every Foundation Models call.
+
+Confirm:
+- prompts are grounded only in the user's selected study material
+- model sessions are not created unnecessarily
+- generation errors are readable
+- unsupported/unavailable model states are handled
+- Retry behavior is sensible
+- existing successful output is not destroyed just because a later regeneration fails
+
+Do not introduce cloud AI or paid AI services.
+
+6. QUIZ ME AUDIT
+
+Verify typed and spoken answers use the same evaluation pipeline.
+
+Check:
+- Correct
+- Partially Correct
+- Try Again
+- Foundation Models grader
+- local fallback grader
+- question navigation
+- expected-answer reveal
+- Read Question Aloud
+- Auto-read
+- microphone permission failures
+- switching from Speak to Type
+
+Make sure Quiz Me can use practice questions generated from any valid Study Source and is not tied specifically to voice notes.
+
+7. FLASHCARDS AUDIT
+
+Verify:
+- Question cards
+- Key Concept cards
+- All Cards / Questions / Key Concepts filtering
+- flip state
+- Next / Previous
+- Shuffle
+- Restart Deck
+- Know It
+- Review Again
+- review round
+- summary calculations
+- Read Aloud
+- Auto Read
+- Reduce Motion
+
+Check edge cases for:
+- only one card
+- only questions
+- only key concepts
+- no cards
+- changing guides
+- outdated guides
+
+Do not change the current visual style unless something is actually broken.
+
+8. BRAIN MAP AUDIT
+
+Verify:
+- all generated concepts can appear
+- relationships render safely
+- selecting nodes works
+- Learn More opens the correct Concept Detail
+- exporting the full map still works
+- empty states are clear
+- outdated-guide state is communicated
+- Reduce Motion is respected where animation exists
+
+9. WIKIPEDIA AUDIT
+
+Confirm the Wikipedia feature remains external enrichment only.
+
+Verify:
+- valid result
+- several meanings
+- no results
+- timeout
+- HTTP error
+- malformed response
+- cancellation
+- session cache
+- Add to Notes
+- duplicate-save protection
+- attribution
+
+Opening cached content must not perform a second network request.
+
+Do not make live Wikipedia requests solely for testing if existing mocks or cached/test paths can verify the same behavior.
+
+10. IMPORT AUDIT
+
+Review supported import formats and their failure behavior:
+
+- TXT
+- Markdown
+- CSV
+- PDF
+- PNG / JPEG / HEIC
+- DOCX
+- PPTX
+- XLSX
+
+Check:
+- text extraction
+- OCR fallback where intended
+- filenames and metadata
+- malformed or unsupported documents
+- cancelled selection
+- drag and drop
+- Try Again
+- security-scoped resource cleanup
+
+Do not add third-party packages.
+
+11. EXPORT AUDIT
+
+Verify:
+- one-note Markdown
+- one-note TXT
+- selected/multiple-note export if supported
+- Brain Map PNG
+- Brain Map Markdown/text representation
+
+Check that exported text preserves useful source information and dates.
+
+Check macOS Save As and normal Apple sharing behavior without introducing custom file-management code unless necessary.
+
+12. ACCESSIBILITY AND LAYOUT AUDIT
+
+Inspect important screens for:
+- normal iPhone size
+- large Dynamic Type
+- Mac window
+- wide/full-screen Mac window
+- Light Mode
+- Dark Mode
+
+Make sure:
+- content does not hug the window edges on Mac
+- content does not become excessively wide
+- buttons remain reachable
+- text is not clipped
+- cards stack instead of overflowing when necessary
+- warning and status colors remain readable
+- controls have useful VoiceOver labels and hints
+- Reduce Motion is respected
+
+Do not redesign the UI.
+
+13. ERROR AND EMPTY-STATE AUDIT
+
+Every important failure should give the user something useful to do.
+
+Look for empty/error states involving:
+- no notes
+- no matching search results
+- no study guide
+- no practice questions
+- no flashcards
+- no Brain Map
+- unavailable Foundation Models
+- failed generation
+- microphone denied
+- speech recognition denied
+- failed import
+- unsupported file
+- Wikipedia offline/error
+- deleted study source
+
+Where reasonable, provide one direct recovery action such as:
+- Try Again
+- Open Settings
+- Import File
+- Capture a Note
+- Back to Study
+- Regenerate
+
+14. BUILD VALIDATION
+
+Build the final project for:
+- My Mac
+- an available iPhone simulator
+
+Resolve new errors and warnings caused by StudyLens code.
+
+Do not spend time modifying unrelated Apple SDK/compiler warnings that are outside the project code.
+
+Report the exact destinations used.
+
+15. TARGETED PROGRAMMATIC TESTING
+
+Use isolated code snippets, mocks, previews, or an in-memory SwiftData store to verify logic where practical.
+
+Do not modify my actual saved data.
+
+Test representative cases for:
+- note query filtering/sorting
+- navigation duplicate prevention
+- note edit persistence
+- outdated-study detection
+- study-source resolution
+- quiz grading fallback
+- flashcard progress math
+- Wikipedia cache behavior
+- import failure handling
+
+Clearly distinguish:
+- directly tested
+- inspected in code
+- requires manual testing
+
+Never claim a UI interaction was tested if you did not actually tap through it.
+
+16. FINAL MANUAL TEST CHECKLIST
+
+Give me a concise final checklist of actions I personally need to test on:
+- Mac
+- iPhone / iPhone simulator where possible
+
+Prioritize tests that cannot be verified reliably by code.
+
+17. REPORT EVIDENCE
+
+Identify the best final screenshots I should capture for my CSC 395 report.
+
+Include representative screenshots for:
+- Capture
+- Notes
+- Study Guide
+- source selection
+- Quiz Me
+- Correct / Partially Correct / Try Again
+- Flashcards
+- Brain Map
+- Wikipedia Learn More
+- Import File
+- export
+- an accessibility or responsive-layout example
+
+Also identify approximately 8-12 especially useful Swift code sections to screenshot.
+
+For each code section, explain in one sentence why it is worth showing.
+
+18. PROJECT INVENTORY
+
+Give me a final organized inventory grouped by:
+- Models
+- Services
+- ViewModels
+- Views
+- Components
+- App/navigation infrastructure
+
+For each important file, give a short description of its responsibility.
+
+Also summarize which Apple frameworks StudyLens now uses and what each one does in this project.
+
+19. AGENTIC CODING LOG
+
+Update AgenticCodingLog.txt with PROMPT 10.
+
+Do not rewrite, delete, renumber, summarize away, or alter PROMPT 1 through PROMPT 9.
+
+The PROMPT 10 entry should include:
+- the exact prompt
+- files inspected
+- files changed
+- bugs found
+- fixes made
+- build/test results
+- remaining manual tests
+- known limitations
+- final application state
+
+After updating the log, print the PROMPT heading sequence so I can verify that PROMPT 1 through PROMPT 10 are all present in order.
+
+20. FINAL RESPONSE
+
+At the end, give me a structured final implementation report containing:
+
+- Final status
+- Builds
+- Architecture status
+- Features confirmed
+- Bugs found and fixed during Prompt 10
+- Files created
+- Files modified
+- Programmatic tests performed
+- What was only inspected
+- Manual testing I still need to do
+- Known limitations
+- Suggested report screenshots
+- Suggested report code screenshots
+- Apple frameworks used
+- Final project inventory
+- AgenticCodingLog status
+
+If something cannot genuinely be verified, say so clearly.
+
+The goal is to finish with the most stable version of the existing StudyLens application possible, not to add more scope.
+
+--------------------------------------------------
+AGENT RESULT
+--------------------------------------------------
+
+Claude Opus completed a stabilization audit. The architecture was kept as is (no redesign, no new features); only concrete bugs were fixed.
+
+Files inspected (directly or by three read-only audit sub-agents):
+- App/navigation: MyApp, ContentView, AppNavigationModel, StudyLensCommands
+- Models: StudyNote, StoredNote, StudySource, StudyAnalysis, StudyConcept, Flashcard, AnswerEvaluation, ImportedFile, NoteListQuery, WikipediaArticle
+- Services: NoteStore, StudyAnalysisService, AnswerEvaluationService, SpeechRecognitionService, SpeechSynthesisService, WikipediaService, ExportService, Import/* (DocumentImportService, OfficeDocumentExtractor, PDFTextExtractor, TabularTextFormatter, XMLTree, ZipArchiveReader)
+- ViewModels: NotesViewModel, StudyViewModel, QuizMeViewModel, FlashcardsViewModel, ConceptEnrichmentViewModel, ImportFileViewModel, ReadAloudViewModel
+- Views: StudyView, StudySourceViews, QuizMeScreen, QuizMeSection, SpeakComponents, Flashcards/*, BrainMap/*, ConceptDetailView, ImportFileView, FileDropZone, ExportSheet, NotesListView, NoteDetailView
+
+Architecture result: single sources of truth confirmed. NotesViewModel (saved notes, written through NoteStore/SwiftData), StudyViewModel (scope, guide, errors; outdated state is computed from the guide's StudySource snapshot, never stored separately), AppNavigationModel (tab, notesPath, studyPath, brainMapPath, activeCapture). One NavigationStack per tab plus one per sheet; no nested duplicates. Generation only writes StudyViewModel, so it cannot open Speak Note or change tabs. One stale-copy problem found (Concept Detail after regeneration, fixed below).
+
+Files created:
+- Diagnostics/StudyLensSelfChecks.swift: DEBUG-only self-check suite (no unit-test target exists, so this is the "dummy test file"). Uses an in-memory SwiftData store, InMemoryNoteStore, a mock URLProtocol (no live Wikipedia), and a temporary folder (deleted afterwards). Never called by the app; not compiled into Release.
+
+Files modified:
+- ViewModels/QuizMeViewModel.swift: stopAll() clears isEvaluating; recordingAttempt counter cancels a recording that finishes starting after the user switched to Type / changed question / left; showGuide(id:) restarts only for a different guide
+- Views/Speak/QuizMeSection.swift: .onChange(of: guide?.id, initial: true) calls showGuide(id:)
+- Services/AnswerEvaluationService.swift: short expected answers ("No", "42", "pH 7") compared word-for-word instead of always "Partially Correct"; hints show whole words ("analysis", not "analysi")
+- Services/Import/OfficeDocumentExtractor.swift: XLSX column-reference overflow guard; DOCX text boxes no longer imported twice (skip mc:Fallback)
+- Services/Import/DocumentImportService.swift: malformed Office XML errors name the real file instead of "document"
+- Services/ExportService.swift: note exports (Markdown and TXT, single and multiple) include "Imported from: <file> (<type · units>)" and "Wikipedia article: <title> – <URL>" from saved metadata
+- Services/WikipediaService.swift: results containing only disambiguation pages return No Results instead of showing the "may refer to" list as an article; User-Agent includes contact URL per Wikimedia policy
+- Views/BrainMap/BrainMapGraph.swift: relationship-name matching uses whole words ("Ion" no longer attaches to "Cellular respiration")
+- Views/BrainMap/BrainMapLayout.swift: edge labels are kept inside the canvas (were clipped in the PNG export / unreachable on screen)
+- ViewModels/AppNavigationModel.swift + ContentView.swift: closeConceptDetails() runs when the guide is replaced or cleared, so Concept Detail never shows the old guide's explanation
+- Services/NoteStore.swift: SwiftDataNoteStore(isStoredInMemoryOnly:) for isolated checks (app still uses the on-disk store)
+
+Bugs found and fixed:
+1. Quiz Me "Checking…" spinner stuck forever (Check Answer disabled) after leaving mid-grade
+2. Local grader could never grade very short expected answers ("Yes" for "No" got Partially Correct)
+3. Grading hint showed chopped words ("analysi, processe")
+4. Microphone could start after the user switched to Type while the permission prompt was open (macOS)
+5. Quiz Me question index could point past a regenerated guide when the Speak sheet was on another mode
+6. Crash: integer overflow on a malformed XLSX cell reference
+7. Malformed DOCX/PPTX/XLSX error said "“document” couldn't be read"
+8. DOCX text boxes duplicated
+9. Exports lost the Wikipedia URL / original file name if the note body was edited
+10. Disambiguation-only Wikipedia search shown as an article and saveable
+11. Brain Map substring matching created wrong edges
+12. Brain Map edge labels clipped at the canvas edge
+13. Stale Concept Detail left on the Brain Map / Study stack after regeneration
+
+Build results:
+- My Mac (macOS 27.0 SDK, arm64): succeeded, 0 errors, 0 warnings
+- iPhone 17 simulator (iOS 27.0): succeeded, 0 errors, 0 warnings
+
+Programmatic tests (RunCodeSnippet running StudyLensSelfChecks.runAll()): 102 passed, 0 failed
+- Note query: sort orders, body/multi-word/accent-insensitive search, source filter, no matches
+- Navigation: duplicate prevention on every stack, pop-back, tab switching keeps stacks, deleted note detail closed, stale concept details closed, generation never opens Capture
+- Persistence (in-memory SwiftData): all 6 sources round-trip; edits keep ID/source/date/import info/Wikipedia attribution; delete; Clear All
+- Outdated detection: edit, delete, new note (All Notes only)
+- Study source: All/Selected/One resolution, pruning, only selected text in model material, source summaries, scope after deletion / Clear All
+- Quiz: Correct / Partially Correct / Try Again, short answers, hint wording, question bounds, guide change, stuck-spinner fix
+- Flashcards: filters, flip-before-rate, pass completion, summary math, review round, restart, one-card, empty deck, cleared guide
+- Wikipedia (mock): valid, cache (1 request for 2 lookups), several meanings, disambiguation-only, no results, HTTP 503, errors not cached, malformed, timeout, offline, cancellation, Add to Notes once, attribution, User-Agent
+- Import (temp files): type detection, unsupported, empty, Windows-1252 text, CSV quoting, corrupt DOCX, malformed XML file name, DOCX text box, XLSX overflow
+- Export: Markdown/TXT metadata, multi-note numbering, file-name sanitizing
+- Brain Map: every concept once, whole-word matching, self-loops/duplicates dropped, finite positions, labels inside canvas (label center checked), single node, outline
+
+Inspected only (not run): Foundation Models generation and grading calls (grounded instructions, one session per guide / per Check tap, readable errors, failed regeneration keeps the old guide), availability states, security-scoped access pairing, picker cancellation, PDF OCR fallback, image import, PNG rendering, ShareLink / Save As, Reduce Motion paths, VoiceOver labels, readable-width layout.
+
+Remaining manual tests: full tap-through on Mac and iPhone; relaunch persistence; VoiceOver walkthrough; largest Dynamic Type; Light/Dark; Mac window resize and full screen; denied microphone/speech + Open Settings; real study-guide generation and model grading on an Apple Intelligence device; live Wikipedia and real offline; PDF/image OCR import; drag and drop on Mac; Brain Map PNG export and Save As / Share.
+
+Known limitations:
+- Foundation Models requires an Apple Intelligence-capable device with it turned on; otherwise study guides are unavailable and Quiz Me uses keyword grading
+- Keyword fallback grading doesn't understand synonyms or negation ("not")
+- Study material is trimmed to about 6,000 characters
+- Generated guides live only for the app session (notes persist; guides don't)
+- Wikipedia: English only, introduction only, session-only cache, accent-insensitive cache key
+- Import: no ZIP64/encrypted Office files, no legacy .doc/.ppt/.xls, very large sheets truncated at 1,000 rows; temporary drop/export copies are left for the system to clean up
+- Very large Brain Maps (~100+ nodes) may be too big to render as PNG (an error is shown)
+
+Final application state: all Prompt 1–9 features intact; 13 bugs fixed; clean builds on My Mac and the iPhone 17 simulator; 102/102 logic self-checks passing.
